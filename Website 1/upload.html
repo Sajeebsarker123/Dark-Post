@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upload Page</title>
+<style>
+    /* Basic CSS for styling */
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+    }
+    .menu {
+        margin-bottom: 20px;
+    }
+    .menu a {
+        margin-right: 10px;
+        text-decoration: none;
+        color: #333;
+    }
+    .menu a:hover {
+        text-decoration: underline;
+    }
+    form {
+        margin-bottom: 20px;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="menu">
+        <a href="home.html">Home</a>
+        <a href="upload.html">Upload</a>
+        <a href="about_us.html">About Us</a>
+        <a href="contact_us.html">Contact Us</a>
+    </div>
+    <h1>Upload Page</h1>
+    <form id="upload-form">
+        <input type="text" id="title" placeholder="Enter a title" required>
+        <input type="text" id="description" placeholder="Enter a description">
+        <input type="file" id="file-upload" accept="image/*" required>
+        <input type="submit" value="Upload">
+    </form>
+</div>
+
+<script>
+    document.getElementById('upload-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent form submission
+
+        const fileInput = document.getElementById('file-upload');
+        const titleInput = document.getElementById('title');
+        const descriptionInput = document.getElementById('description');
+        const file = fileInput.files[0];
+        const title = titleInput.value;
+        const description = descriptionInput.value;
+
+        if (file && title) {
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const imageUrl = e.target.result;
+                const postId = Date.now().toString(); // Generate unique ID for the post
+                const postData = {
+                    title: title,
+                    description: description,
+                    imageUrl: imageUrl
+                };
+                // Store post data in localStorage with unique ID
+                localStorage.setItem(postId, JSON.stringify(postData));
+                window.location.href = 'home.html'; // Redirect to home page after upload
+            };
+
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Page</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<style>
+    /* Basic CSS for styling */
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+    }
+    .menu {
+        margin-bottom: 20px;
+    }
+    .menu a {
+        margin-right: 10px;
+        text-decoration: none;
+        color: #333;
+    }
+    .menu a:hover {
+        text-decoration: underline;
+    }
+    .post {
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        position: relative;
+    }
+    .post-actions {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+    }
+    .post-actions button {
+        margin-right: 10px;
+    }
+    .like-comment-count {
+        margin-left: auto;
+    }
+    /* Comment popup CSS */
+    .comment-popup {
+        position: absolute;
+        background: #fff;
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        z-index: 999;
+        display: none;
+        top: calc(100% + 5px);
+        left: 0;
+    }
+
+    /* Media queries for responsiveness */
+    @media only screen and (max-width: 600px) {
+        .container {
+            padding: 10px;
+        }
+        .post {
+            padding: 5px;
+        }
+    }
+</style>
+<style>
+    .container .menu .gggfff {
+        color: green;
+        border: 2px solid #000;
+        padding: 5px;
+        background-color: aqua;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="menu">
+        <a href="upload.html" class="gggfff">Post Something</a>
+    </div>
+    <h1>Home</h1>
+    <div id="content-section"></div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const title = localStorage.getItem('title');
+        const imageUrl = localStorage.getItem('imageUrl');
+
+        if (title && imageUrl) {
+            displayPost(title, imageUrl);
+        }
+    });
+
+    function displayPost(title, imageUrl) {
+        const contentSection = document.getElementById('content-section');
+
+        const post = document.createElement('div');
+        post.classList.add('post');
+        post.id = title; // Add unique ID to each post
+
+        const titleHeading = document.createElement('h2');
+        titleHeading.textContent = title;
+        post.appendChild(titleHeading);
+
+        const image = document.createElement('img');
+        image.src = imageUrl;
+        image.alt = title;
+        post.appendChild(image);
+
+        // Create post actions
+        const postActions = document.createElement('div');
+        postActions.classList.add('post-actions');
+
+        // Like button with Font Awesome icon
+        const likeButton = document.createElement('button');
+        likeButton.innerHTML = '<i class="far fa-thumbs-up"></i> Like';
+        likeButton.addEventListener('click', function() {
+            likePost(this);
+        });
+        postActions.appendChild(likeButton);
+
+        // Comment button with Font Awesome icon
+        const commentButton = document.createElement('button');
+        commentButton.innerHTML = '<i class="far fa-comment"></i> Comment';
+        commentButton.addEventListener('click', function() {
+            showCommentPopup(this);
+        });
+        postActions.appendChild(commentButton);
+
+        // Delete button with trash icon
+        const deleteButton = document.createElement('button');
+        deleteButton.innerHTML = '<i class="fas fa-trash"></i> Delete';
+        deleteButton.addEventListener('click', function() {
+            deletePost(title);
+        });
+        postActions.appendChild(deleteButton);
+
+        // Like and comment count
+        const likeCommentCount = document.createElement('div');
+        likeCommentCount.classList.add('like-comment-count');
+        likeCommentCount.innerHTML = `<i class="far fa-thumbs-up"></i> <span id="like-count">${getLikeCount(title)}</span> Likes | <i class="far fa-comment"></i> <span class="comment-count">${getCommentCount(title)}</span> Comments`;
+        postActions.appendChild(likeCommentCount);
+
+        post.appendChild(postActions);
+
+        // Comment form
+        const commentForm = document.createElement('form');
+        commentForm.classList.add('comment-form');
+        commentForm.innerHTML = `
+            <textarea rows="3" placeholder="Write a comment..."></textarea>
+            <button type="submit">Submit</button>
+        `;
+        commentForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            const commentText = this.querySelector('textarea').value.trim();
+            if (commentText) {
+                addComment(title, commentText);
+                updateCommentCount(title);
+                this.reset(); // Clear the form
+            }
+        });
+        post.appendChild(commentForm);
+
+        contentSection.appendChild(post);
+    }
+
+    function likePost(button) {
+        const title = button.parentNode.parentNode.querySelector('h2').textContent;
+        let likeCount = parseInt(localStorage.getItem(`${title}_likeCount`) || 0);
+        likeCount++;
+        localStorage.setItem(`${title}_likeCount`, likeCount);
+        button.innerHTML = '<i class="fas fa-thumbs-up"></i> Liked';
+        button.disabled = true;
+
+        const likeCountElement = button.parentNode.querySelector('#like-count');
+        likeCountElement.textContent = likeCount;
+    }
+
+    function showCommentPopup(button) {
+        const title = button.parentNode.parentNode.querySelector('h2').textContent;
+        const comments = getComments(title);
+        let commentPopup = button.parentNode.querySelector('.comment-popup');
+
+        if (!commentPopup) {
+            commentPopup = document.createElement('div');
+            commentPopup.classList.add('comment-popup');
+            commentPopup.innerHTML = `<h3>Comments</h3>${comments.map(comment => `<p>${comment}</p>`).join('')}`;
+            button.parentNode.appendChild(commentPopup);
+        }
+
+        commentPopup.style.display = 'block'; // Show the popup
+    }
+
+    function getLikeCount(title) {
+        return localStorage.getItem(`${title}_likeCount`) || 0;
+    }
+
+    function getCommentCount(title) {
+        return localStorage.getItem(`${title}_comments`) ? JSON.parse(localStorage.getItem(`${title}_comments`)).length : 0;
+    }
+
+    function getComments(title) {
+        return localStorage.getItem(`${title}_comments`) ? JSON.parse(localStorage.getItem(`${title}_comments`)) : [];
+    }
+
+    function addComment(title, comment) {
+        let comments = getComments(title);
+        comments.push(comment);
+        localStorage.setItem(`${title}_comments`, JSON.stringify(comments));
+    }
+
+    function updateCommentCount(title) {
+        const commentCount = getCommentCount(title);
+        const commentCountElement = document.querySelector(`#${title} .comment-count`);
+        commentCountElement.textContent = commentCount;
+    }
+
+    function deletePost(title) {
+        const post = document.getElementById(title);
+        if (post) {
+            post.remove(); // Remove the post from the DOM
+            localStorage.removeItem(`${title}_likeCount`); // Remove like count from local storage
+            localStorage.removeItem(`${title}_comments`); // Remove comments from local storage
+            localStorage.removeItem('title'); // Remove the title from local storage
+            localStorage.removeItem('imageUrl'); // Remove the image URL from local storage
+        }
+    }
+</script>
+</body>
+</html>
